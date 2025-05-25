@@ -11,3 +11,49 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+button {
+    font-family: sans-serif;
+    border: none;
+    margin: 15px;
+    padding: 18px 22px;
+    text-align: center;
+    text-transform: uppercase;
+    position: relative;
+    transition: .3s;
+    z-index: 1;
+    color: #fff;
+    cursor: pointer;
+    border-radius: 12px;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    font-weight: 700;  
+    /*background-image: linear-gradient(to right, #2424d8 0%, #21aeff 51%, #00bedabf 100%);*/
+    background-image: linear-gradient(to right, #1c3fde 0%, #2196f3 51%, #00bcd4 100%);
+    background-size: 200% auto;
+}
+button:hover {
+    background-position: right center;
+    transform: translateY(-0.25em);
+    box-shadow: 0 10px 9px -3px #06196f61;
+}
+button:active {
+    transform: translateY(0);
+    box-shadow: unset;
+}
+
+button.clear {
+  background-image: linear-gradient(to right, #cc9808, #ca5c13, #c23b3b);
+  background-size: 200% auto;
+}
+button.clear:hover {
+  background-position: right center;
+  box-shadow: 0 10px 9px -3px #c0392b66;
+}
+
+header {
+  background-color: #91cdf5;
+  text-align: center;
+  padding: 20px;
+}

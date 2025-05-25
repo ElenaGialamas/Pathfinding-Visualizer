@@ -1,0 +1,71 @@
+.grid {  
+    margin: 0 0;
+    user-select: none;
+    -webkit-user-drag: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
+}
+
+.app-container {
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+  user-select: none;
+}
+
+.app-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #21aeff;
+  margin-bottom: 20px;
+}
+
+.app-header h1 {
+    position: relative;
+    font-weight: 900;
+    font-size: 3rem;
+    color: #1a1a7d; 
+    margin: 0 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 4px;      
+    text-shadow: 0 3px 8px rgba(36, 36, 216, 0.5);
+    user-select: none;
+}
+.app-header h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 4px;
+    background: #21aeff;
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-top: 40px;
+    font-size: 0.9rem;
+    color: #1c1c7c;
+    margin-bottom: 10px;
+}
+
+.legend div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-box {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.15);
+}
