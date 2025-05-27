@@ -9,6 +9,8 @@ import { greedyBestFirstSearch } from "./Algorithms/gbfs";
 export default class PathfindingVisualizer extends Component {
     
     animationTimeouts = []; 
+    nodeSize = 25;
+    gridContainerRef = React.createRef();
 
     constructor(props) {
         super(props);
@@ -24,8 +26,14 @@ export default class PathfindingVisualizer extends Component {
     }
 
     componentDidMount() {
-        const grid = this.getEmptyGrid(20, 50);
-        this.setState({grid});
+        this.setDynamicGridSize();
+        window.addEventListener('mouseup', this.handleGlobalMouseUp);
+        window.addEventListener('resize', this.setDynamicGridSize);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('mouseup', this.handleGlobalMouseUp);
+        window.removeEventListener('resize', this.setDynamicGridSize);
     }
 
     handleMouseDown(e, row, col) {
@@ -34,10 +42,10 @@ export default class PathfindingVisualizer extends Component {
             const newGrid = this.getNewGridWithWallsToggled(this.state.grid, row, col); 
             this.setState({grid: newGrid, mouseIsPressed: true});
         } else if (e.button === 1) {
-            const newGrid = this.getGridWithNewSpecialNode(this.state.grid, row, col, 'isStart');
+            const newGrid = this.getGridWithNewSpecialNodes(this.state.grid, [['isStart', [row, col]]]);
             this.setState({grid: newGrid, startNodeRow: row, startNodeCol: col});
         } else if (e.button === 2) {
-            const newGrid = this.getGridWithNewSpecialNode(this.state.grid, row, col, 'isFinish');
+            const newGrid = this.getGridWithNewSpecialNodes(this.state.grid, [['isFinish', [row, col]]]);
             this.setState({grid: newGrid, finishNodeRow: row, finishNodeCol: col})
         }
     }
@@ -54,6 +62,43 @@ export default class PathfindingVisualizer extends Component {
 
     handleContextMenu(e) {
         e.preventDefault();
+    }
+
+    handleGlobalMouseUp = () => {
+        if (this.state.mouseIsPressed) {
+            this.setState({mouseIsPressed: false});
+        }
+    }
+    
+    setDynamicGridSize = () => {
+        const nodeSize = 25;
+        const container = this.gridContainerRef.current;    
+
+        if(!container) return;
+
+        const availableWidth = container.offsetWidth - 50;
+        const availableHeight = container.offsetHeight - 50;
+        const colSize = Math.floor(availableWidth/nodeSize);
+        const rowSize = Math.floor(availableHeight/nodeSize);
+
+        const newStartRow = Math.floor(rowSize/2);
+        const newStartCol = Math.floor(colSize/3);
+        const newFinishCol = Math.floor(2*colSize / 3);
+        let newGrid = this.getEmptyGrid(rowSize, colSize);
+
+        const flags = [
+            ['isStart', [newStartRow, newStartCol]],
+            ['isFinish', [newStartRow, newFinishCol]]
+        ]
+        newGrid = this.getGridWithNewSpecialNodes(newGrid, flags);
+
+        this.setState({
+            grid: newGrid,
+            startNodeRow: newStartRow,
+            startNodeCol: newStartCol,
+            finishNodeRow: newStartRow,
+            finishNodeCol: newFinishCol
+        });
     }
     
     animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder) {
@@ -79,7 +124,6 @@ export default class PathfindingVisualizer extends Component {
                 const node = nodesInShortestPathOrder[i];
                 document.getElementById(`node-${node.row}-${node.col}`).classList.add('node-shortest-path');
 
-                // Only when the last node animation completes...
                 if (i === nodesInShortestPathOrder.length - 1) {
                     this.setState({ isAnimating: false });    
                 }
@@ -92,6 +136,7 @@ export default class PathfindingVisualizer extends Component {
     cancelAnimation() {
         this.animationTimeouts.forEach(clearTimeout);
         this.animationTimeouts = [];
+        this.setState({isAnimating: false});
     }
 
     visualizeAlgorithm(algorithm) {
@@ -173,32 +218,34 @@ export default class PathfindingVisualizer extends Component {
                 <div><span className="legend-box node-finish"></span> Finish Node (Right Click)</div>
                 <div><span className="legend-box node-wall"></span> Wall (Left Click & Drag)</div>
             </div>
-            <div className="grid">
-                {grid.map((row, rowIdx) => {
-                    return (
-                    <div key={rowIdx}>
-                        {row.map((node, nodeIdx) => {
-                        const {row, col, isFinish, isStart, isWall} = node;
+            <div className="grid-container" ref={this.gridContainerRef}>
+                <div className="grid">
+                    {grid.map((row, rowIdx) => {
                         return (
-                            <Node
-                            key={nodeIdx}
-                            col={col}
-                            isFinish={isFinish}
-                            isStart={isStart}
-                            isWall={isWall}
-                            mouseIsPressed={mouseIsPressed}
-                            onMouseDown={(e, row, col) => this.handleMouseDown(e, row, col)}
-                            onMouseEnter={(row, col) =>
-                                this.handleMouseEnter(row, col)
-                            }
-                            onMouseUp={() => this.handleMouseUp()}
-                            onContextMenu={(e) => this.handleContextMenu(e)}
-                            row={row}></Node>
+                        <div className="row" key={rowIdx}>
+                            {row.map((node, nodeIdx) => {
+                            const {row, col, isFinish, isStart, isWall} = node;
+                            return (
+                                <Node
+                                key={nodeIdx}
+                                col={col}
+                                isFinish={isFinish}
+                                isStart={isStart}
+                                isWall={isWall}
+                                mouseIsPressed={mouseIsPressed}
+                                onMouseDown={(e, row, col) => this.handleMouseDown(e, row, col)}
+                                onMouseEnter={(row, col) =>
+                                    this.handleMouseEnter(row, col)
+                                }
+                                onMouseUp={() => this.handleMouseUp()}
+                                onContextMenu={(e) => this.handleContextMenu(e)}
+                                row={row}></Node>
+                            );
+                            })}
+                        </div>
                         );
-                        })}
-                    </div>
-                    );
-                })}
+                    })}
+                </div>
             </div>
         </div>
         );
@@ -227,15 +274,17 @@ export default class PathfindingVisualizer extends Component {
         return newGrid;
     };
 
-    getGridWithNewSpecialNode = (grid, row, col, flagName) => {
+    getGridWithNewSpecialNodes = (grid, flagTuples) => {
         return grid.map((gridRow, rIdx) =>
-            gridRow.map((node, cIdx) => ({
-                ...node,
-                [flagName]: rIdx === row && cIdx === col,
-            }))
+            gridRow.map((node, cIdx) => {
+                const newNode = { ...node };
+                flagTuples.forEach(([flagName, [targetRow, targetCol]]) => {
+                    newNode[flagName] = rIdx === targetRow && cIdx === targetCol;
+                });
+                return newNode;
+            })
         );
     };
-    
 
 }
 
